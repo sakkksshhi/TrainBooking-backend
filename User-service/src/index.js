@@ -3,10 +3,13 @@ const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const { config } = require('./config');
 const logger = require('./config/logger');
+const RedisClient = require('./config/redis');
 
-const {corsMiddleware} = require('./middlewares/cors.middleware');
-const errorHandler = require('./middlewares/error.middleware');
-const {reqLogger} = require('./middlewares/req.middleware');
+const authRoutes = require('./routes/authroute');
+
+const {corsMiddleware} = require('./middleware/cors.middleware');
+const errorHandler = require('./middleware/error.middleware');
+const {reqLogger} = require('./middleware/req.middleware');
 
 const app = express();
 
@@ -15,6 +18,8 @@ app.use(corsMiddleware);
 app.use(reqLogger);
 app.use(cookieParser());
 app.use(express.json());
+app.use('/api/auth', authRoutes);
+
 
 app.get('/', (req, res) => {
   res.send('User service is running');
@@ -28,6 +33,7 @@ app.use(errorHandler);
 
 const startServer = async () => {
   try {
+      RedisClient.getInstance();
     const server = app.listen(config.PORT, () => {
       logger.info(`User service is running on port ${config.PORT}`);
     });
@@ -36,3 +42,5 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+
+startServer();

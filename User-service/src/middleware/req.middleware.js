@@ -11,3 +11,5 @@ const reqLogger = (req, res, next) => {
 
   next();
 };
+
+module.exports = { reqLogger };

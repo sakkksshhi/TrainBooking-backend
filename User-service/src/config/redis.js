@@ -30,3 +30,5 @@ class RedisClient {
         // ...
     }
 }
+
+module.exports = RedisClient;
