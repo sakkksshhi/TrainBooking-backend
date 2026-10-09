@@ -3,7 +3,7 @@ const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const { config } = require('./config');
 const logger = require('./config/logger');
-const RedisClient = require('./config/redis');
+const { RedisClient } = require('./config/redis');
 
 const authRoutes = require('./routes/authroute');
 

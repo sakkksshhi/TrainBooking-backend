@@ -1,7 +1,6 @@
 const {TooManyRequestsError} = require('../utils/error');
 const { config } = require('../config');
-const RedisClient = require('../config/redis');
-const redisClient = RedisClient.getInstance();
+const { redis: redisClient } = require('../config/redis');
 const otpGenerator = require('otp-generator');
 const crypto = require('crypto');
 const RATE_MAX = parseInt(config.OTP_RATE_MAX_PER_HOUR || '5', 10);
