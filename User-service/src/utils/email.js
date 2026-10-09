@@ -54,7 +54,7 @@ async function sendOtpEmail(email, otp) {
 }
 
 async function verifyOtpEmail(meta) {
-    const name = meta.name ? ` ${meta.name}` : '';
+    const name = meta.firstname ? ` ${meta.firstname}` : '';
 
     const msg = {
         to: meta.email,
@@ -82,7 +82,7 @@ async function verifyOtpEmail(meta) {
     };
 
     try {
-        await sgMail.send(msg);
+        await transporter.sendMail(msg);
     } catch (err) {
     console.error('Nodemailer error:', err.code, err.message);
     throw new Error('Failed to send verification email');

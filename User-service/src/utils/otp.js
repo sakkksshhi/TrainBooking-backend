@@ -5,6 +5,7 @@ const redisClient = RedisClient.getInstance();
 const otpGenerator = require('otp-generator');
 const crypto = require('crypto');
 const RATE_MAX = parseInt(config.OTP_RATE_MAX_PER_HOUR || '5', 10);
+const ATTEMPT_MAX = parseInt(config.OTP_MAX_VERIFY_ATTEMPTS || '5', 10);
 const OTP_TTL = parseInt(config.OTP_TTL || '300', 10);
 const HMAC_SECRET = config.OTP_HMAC_SECRET;
 
@@ -34,4 +35,25 @@ async function generateAndStoreOtp(meta) {
     return { otp, otpSessionId };
 }
 
-module.exports = { generateAndStoreOtp};
+async function verifyAndRetrieveOtp(otpSessionId, otp) {
+    const rawdata = await redisClient.get(`otp:session:${otpSessionId}`);
+    if (!rawdata) return null;
+    const { hashedOtp: storedOtp, meta } = JSON.parse(rawdata);
+    const attemptsKey = `otp:attempts:${otpSessionId}`;
+    const attemptsCount = parseInt(await redisClient.get(attemptsKey) || '0', 10);
+    if (attemptsCount >= ATTEMPT_MAX) {
+        throw new TooManyRequestsError('Too many OTP verification attempts. Please request a new OTP.','OTP_ATTEMPT_LIMIT');
+    }
+    const hashedOtp = hmacFor(meta.email, otp);
+    if(crypto.timingSafeEqual(Buffer.from(storedOtp, 'hex'), Buffer.from(hashedOtp, 'hex'))) {
+        await redisClient.del(`otp:session:${otpSessionId}`);
+        await redisClient.del(attemptsKey);
+        await redisClient.del(`otp:rate:${meta.email}`);
+        return meta;
+    } else {
+        await redisClient.incr(attemptsKey);
+        await redisClient.expire(attemptsKey, OTP_TTL);
+        return null;
+    }
+}
+module.exports = { generateAndStoreOtp, verifyAndRetrieveOtp };
