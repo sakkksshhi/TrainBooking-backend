@@ -44,6 +44,8 @@ const config = {
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
 
     KAFKA_CLIENT_ID: process.env.KAFKA_CLIENT_ID || "user-service",
+
+    INTERNAL_API_KEY: process.env.INTERNAL_API_KEY,
 };
 
 module.exports = { config };
