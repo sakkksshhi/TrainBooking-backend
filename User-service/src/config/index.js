@@ -23,9 +23,7 @@ const config = {
 
     OTP_HMAC_SECRET: process.env.OTP_HMAC_SECRET,
 
-    MAIL_USER: process.env.MAIL_USER,
     
-    MAIL_PASSWORD: process.env.MAIL_PASSWORD, 
 
     JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET,
 
@@ -44,6 +42,8 @@ const config = {
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+
+    KAFKA_CLIENT_ID: process.env.KAFKA_CLIENT_ID || "user-service",
 };
 
 module.exports = { config };

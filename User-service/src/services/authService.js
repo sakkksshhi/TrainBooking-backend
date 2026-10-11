@@ -1,14 +1,16 @@
 const { BadRequestError, ForbiddenError, UnauthorizedError } = require('../utils/error');
 const { generateAndStoreOtp, verifyAndRetrieveOtp } = require('../utils/otp');
 const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require('../utils/auth');
-const { sendOtpEmail, verifyOtpEmail } = require('../utils/email');
+const notificationProducer = require('../kafka/producer/notification.producer');
 const bcrypt = require('bcrypt');
 const prisma = require('../config/prisma');
 const jwt = require('jsonwebtoken');
 const { redis: redisClient } = require('../config/redis');
 const { config } = require('../config');
 const { OAuth2Client } = require('google-auth-library');
+
 const googleClient = new OAuth2Client(config.GOOGLE_CLIENT_ID);
+const OTP_MINUTES = Math.ceil((config.OTP_TTL || 300) / 60);
 
 const sendOTP = async (firstname, lastname, rawEmail, password) => {
     const email = rawEmail.trim().toLowerCase();
@@ -21,7 +23,7 @@ const sendOTP = async (firstname, lastname, rawEmail, password) => {
     const hashedPassword = await bcrypt.hash(password, 12);
     const meta = { firstname, lastname, email, hashedPassword };
     const { otp, otpSessionId } = await generateAndStoreOtp(meta);
-    await sendOtpEmail(email, otp);
+    await notificationProducer.sendOtpEmail(email, otp, OTP_MINUTES);
     return { otpSessionId };
 };
 
@@ -49,8 +51,8 @@ const verifyOTP = async (otpSessionId, otp) => {
         throw err;
     }
 
-    verifyOtpEmail(meta).catch((err) =>
-        console.error('Confirmation email failed:', err.message)
+    notificationProducer.sendWelcomeEmail(user.email, user.firstname).catch((err) =>
+        console.error('Failed to publish welcome email event:', err.message)
     );
 
     return user;
