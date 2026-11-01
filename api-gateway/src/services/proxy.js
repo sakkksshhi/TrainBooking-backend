@@ -251,6 +251,8 @@ if (serviceName === 'userService') {
     } else {
         servicePath = '/api/' + relativePath;
     }
+} else if (serviceName === 'bookingService') {
+    servicePath = '/api/' + pathParts.join('/');
 } else {
     servicePath = '/' + pathParts.slice(1).join('/');
 }
